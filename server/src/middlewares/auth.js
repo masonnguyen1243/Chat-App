@@ -1,10 +1,11 @@
-import { ENV } from "../config/environment";
-import User from "../models/UserModel";
+import { ENV } from "../config/environment.js";
+import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 
-export const verifyToken = async (req, res, next) => {
+export const protectedRoutes = async (req, res, next) => {
   try {
     const token = req.cookies?.accessToken;
+
     if (!token) {
       return res
         .status(403)
@@ -13,15 +14,7 @@ export const verifyToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, ENV.JWT_ACCESS_TOKEN_SECRET);
 
-    const user = await User.findById(decoded.userId).select("-password");
-
-    if (!user) {
-      return req
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-
-    req.user = user;
+    req.user = decoded;
 
     next();
   } catch (error) {

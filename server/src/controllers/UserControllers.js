@@ -4,6 +4,7 @@ import { generateAccessToken } from "../utils/jwt.js";
 import ms from "ms";
 import { v4 as uuidv4 } from "uuid";
 import SendEmail from "../utils/sendEmail.js";
+import { CloudinaryProvider } from "../utils/cloudinary.js";
 
 //Signup
 export const signUp = async (req, res) => {
@@ -177,6 +178,55 @@ export const verifyAccount = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in verifyAccount controllers");
+
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const { bio, fullName } = req.body;
+    const profilePic = req.file;
+
+    const userId = req.user.userId;
+
+    if (!userId)
+      return res
+        .status(404)
+        .json({ success: false, message: "Account not found!" });
+
+    let updatedUser;
+
+    if (!profilePic) {
+      updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { bio, fullName },
+        { new: true }
+      );
+    } else {
+      const upload = await CloudinaryProvider.streamUpload(
+        profilePic.buffer,
+        "user"
+      );
+
+      updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
+          profilePic: upload.secure_url,
+          bio,
+          fullName,
+        },
+        { new: true }
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Update user successfully!",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error in updateUser controllers");
 
     return res.status(500).json({ success: false, message: error.message });
   }
