@@ -136,3 +136,48 @@ export const logout = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+//Verification account
+export const verifyAccount = async (req, res) => {
+  try {
+    const { email, token } = req.body;
+    if (!email || !token) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Missing Details" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (user.isActive) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Your account is already verify! Please login to enjoy our services!",
+      });
+    }
+
+    if (token !== user.verifyToken) {
+      return res.status(400).json({ success: false, message: "Invalid Token" });
+    }
+
+    user.isActive = true;
+    user.verifyToken = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Verification successfully! Please login to enjoy our services!",
+    });
+  } catch (error) {
+    console.error("Error in verifyAccount controllers");
+
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
