@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { ENV } from "./config/environment.js";
+import { ConnectDB } from "./config/db.js";
 
 const app = express();
 
@@ -10,6 +11,8 @@ app.use(cors());
 app.use("/api/status", (req, res) => {
   res.send("Server is live");
 });
+
+ConnectDB();
 
 const PORT = ENV.PORT || 5000;
 
