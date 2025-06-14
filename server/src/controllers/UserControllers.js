@@ -121,3 +121,18 @@ export const login = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+//Logout
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("accessToken");
+
+    return res
+      .status(200)
+      .json({ success: false, message: "Logged out successfully!" });
+  } catch (error) {
+    console.error("Error in logout controllers");
+
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
