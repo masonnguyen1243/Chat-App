@@ -4,7 +4,12 @@ import jwt from "jsonwebtoken";
 
 export const verifyToken = async (req, res, next) => {
   try {
-    const token = req.headers.token;
+    const token = req.cookies?.accessToken;
+    if (!token) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Token not found" });
+    }
 
     const decoded = jwt.verify(token, ENV.JWT_ACCESS_TOKEN_SECRET);
 
@@ -17,8 +22,13 @@ export const verifyToken = async (req, res, next) => {
     }
 
     req.user = user;
+
     next();
   } catch (error) {
+    if (error?.message?.includes("jwt expired")) {
+      return res.status(403).json({ message: "Token expired" });
+    }
+
     return res.status(500).json({ success: false, message: error.message });
   }
 };
